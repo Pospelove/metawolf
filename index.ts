@@ -5,6 +5,10 @@ import CDP from "chrome-remote-interface";
 import * as cri from "chrome-remote-interface";
 import * as xml from "fast-xml-parser";
 
+// TODO: Refactor globals
+let totalApplications = 0;
+let applications = new Array<JobInfoParsed>();
+
 const findAndClick = async (image: string) => {
   const res = { success: false };
   try {
@@ -202,6 +206,27 @@ const getJobInfoParsed = async (chromeConnect: ChromeConnectSuccess) => {
   return { position, company, hiringContact: tmp };
 };
 
+const sendApplication = async (infoFull: JobInfoParsed | undefined) => {
+  const clickSend = await findAndClick("assets/angel-co-send-application.png");
+  await nut.keyboard.pressKey(nut.Key.Escape);
+  await nut.keyboard.releaseKey(nut.Key.Escape);
+
+  // Failed click attempts do not increase counter
+
+  if (infoFull && clickSend.success)
+    applications.push(infoFull);
+
+  if (clickSend.success)
+    totalApplications++;
+
+  console.log({ totalApplications });
+  await nut.mouse.scrollDown(400);
+  if (totalApplications == 3) {
+    console.log("Done");
+    process.exit(0);
+  }
+};
+
 const main = async () => {
   if (`${nutTemplateMatcher}` === "this cond is never true") {
     console.log(nutTemplateMatcher);
@@ -235,10 +260,6 @@ const main = async () => {
 
   let wasOnAngel = null;
 
-  let totalApplications = 0;
-
-  let applications = new Array<JobInfoParsed>();
-
   for (; ;) {
     // DO NOT REMOVE THIS LINE
     // It pervents event loop issue
@@ -270,7 +291,7 @@ const main = async () => {
       const res = await findAndClick("assets/angel-co-write-a-note.png");
 
       if (!res.success) {
-
+        //await sendApplication(undefined);
         console.log("Scrolling down");
         await nut.mouse.scrollDown(300);
       }
@@ -320,6 +341,12 @@ const main = async () => {
         }
         else if (html.indexOf("is not accepting applications from your current location due to timezone or relocation constraints") !== -1) {
           console.log("Skipping company (Hates my timezone!)");
+          await nut.keyboard.pressKey(nut.Key.Escape);
+          await nut.keyboard.releaseKey(nut.Key.Escape);
+          await nut.mouse.scrollDown(500);
+        }
+        else if (html.indexOf("Improve your odds") !== -1) {
+          console.log("Skipping company (Asked to improve odds!)");
           await nut.keyboard.pressKey(nut.Key.Escape);
           await nut.keyboard.releaseKey(nut.Key.Escape);
           await nut.mouse.scrollDown(500);
@@ -375,18 +402,7 @@ const main = async () => {
           await new Promise(r => setTimeout(r, 500));
 
           // Maybe we already wrote the letter and want to submit
-          const clickSend = await findAndClick("assets/angel-co-send-application.png");
-          await nut.keyboard.pressKey(nut.Key.Escape);
-          await nut.keyboard.releaseKey(nut.Key.Escape);
-
-          applications.push(infoFull);
-          totalApplications++;
-          console.log({ totalApplications });
-          await nut.mouse.scrollDown(400);
-          if (totalApplications == 10) {
-            console.log("Done");
-            process.exit(0);
-          }
+          await sendApplication(infoFull);
         }
       }
     }
