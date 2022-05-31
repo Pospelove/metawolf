@@ -16,7 +16,7 @@ const findAndClick = async (image: string) => {
       nut.straightTo(
         nut.centerOf(
           nut.screen.find(
-            nut.imageResource(image)
+            nut.imageResource(image), { confidence: 0.989 }
           )
         )
       )
@@ -29,6 +29,9 @@ const findAndClick = async (image: string) => {
     const knownException = `${e}`.indexOf(notFoundStr) !== -1;
     if (!knownException) {
       throw e;
+    }
+    else {
+      console.log(e);
     }
   }
   console.log("Clicked " + image + " success = " + res.success);
@@ -221,7 +224,7 @@ const sendApplication = async (infoFull: JobInfoParsed | undefined) => {
 
   console.log({ totalApplications });
   await nut.mouse.scrollDown(400);
-  if (totalApplications == 3) {
+  if (totalApplications == 30) {
     console.log("Done");
     process.exit(0);
   }
@@ -310,11 +313,16 @@ const main = async () => {
 
         if (infoFull.position.toLowerCase().includes("ethereum")
           || infoFull.position.toLowerCase().includes("contract")
-          || infoFull.position.toLowerCase().includes("smart")
           || infoFull.position.toLowerCase().includes("relations")
-          || infoFull.position.toLowerCase().includes("blockchain")
+          || infoFull.position.toLowerCase().includes("solidity")
+          || infoFull.position.toLowerCase().includes("security")
+          || infoFull.position.toLowerCase().includes("anal")
+          || infoFull.position.toLowerCase().includes("support")
           || infoFull.position.toLowerCase().includes("ai")
           || infoFull.position.toLowerCase().includes("devops")
+          || infoFull.position.toLowerCase().includes("php")
+          || infoFull.position.toLowerCase().includes("junior")
+          || infoFull.position.toLowerCase().includes("rust")
           || infoFull.position.includes("Only")) {
           console.log("Skipping " + infoFull.position);
           await nut.keyboard.pressKey(nut.Key.Escape);
@@ -361,6 +369,9 @@ const main = async () => {
           }
           else if (infoFull.position.toLowerCase().includes("front")) {
             newPosition = "Frontend Developer";
+          }
+          else if (infoFull.position.toLowerCase().includes("product")) {
+            newPosition = "Product Engineer";
           }
 
           if (infoFull.position.toLowerCase().includes("senior")) {
